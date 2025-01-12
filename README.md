@@ -18,11 +18,29 @@ A web application built with **Next.js** (TypeScript) that allows users to fetch
 - **ORM**: Prisma
 - **Deployment**: Vercel
 
+## Deployed Application
+
+You can view the live application here:  
+👉 [YouTube Playlist Fetcher (Deployed URL)](https://youtubeplaylist-zeta.vercel.app/)
+
+---
+
+## Demo Video
+
+Watch the demo video to see the app in action:  
+[![YouTube Playlist Fetcher Demo](https://img.youtube.com/vi/your-video-id/hqdefault.jpg)](https://youtu.be/uRhmjmb1WsU)
+
+Click the image above or [here](https://youtu.be/uRhmjmb1WsU) to watch the video.
+
+---
+
 ## Prerequisites
 
 - Node.js >= 16.x
 - PostgreSQL database (Supabase for cloud hosting)
 - Google Developer Console project for OAuth (or any other provider for NextAuth)
+
+---
 
 ## Setup Instructions
 
@@ -119,5 +137,3 @@ If you'd like to contribute to the project:
 4. Create a pull request.
 
 ---
-
-This should be enough for getting started and understanding the structure of your project. Adjust as necessary for your specific needs!
