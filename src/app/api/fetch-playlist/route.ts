@@ -84,7 +84,10 @@ export async function POST(req: NextRequest) {
     // Resolve all playlist insertions
     const savedPlaylists = await Promise.all(playlistDataPromises);
 
-    return NextResponse.json(savedPlaylists);
+    return NextResponse.json(
+      {message: "Success! Playlists added successfully."},
+      {status: 200}
+    );
   } catch (error) {
     console.error(error);
     return NextResponse.json(
