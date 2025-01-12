@@ -1,101 +1,202 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast"
+
+export default function HomePage() {
+  interface Video {
+    id: string;
+    title: string;
+    description: string | null;
+    videoId: string; 
+  }
+  
+  interface Playlist {
+    id: string;
+    title: string;
+    description: string | null;
+    userId: string | null;
+    isPublic: boolean;
+    fetchedAt: Date;
+    videos: Video[];
+  }
+  const { data: session } = useSession();
+  const [playlists, setPlaylists] = useState([]);
+  const [channelId, setChannelId] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
+
+  const fetchPlaylists = async () => {
+    try {
+      const res = await fetch("/api/playlists");
+      if (!res.ok) throw new Error("Failed to fetch playlists");
+      const data = await res.json();
+      setPlaylists(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlaylists();
+  }, []);
+
+  const handleFetchPlaylist = async () => {
+    if (channelId === "") {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: "Channel Id is required.",
+      })
+      return;
+    }
+    if (!session && apiKey === "") {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: "Sign In or Provide API key.",
+      })
+      return;
+    }
+    const res = await fetch("/api/fetch-playlist", {
+      method: "POST",
+      body: JSON.stringify({ channelId, apiKey }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (res.ok) {
+      fetchPlaylists();
+      toast({
+        title: "Success",
+        description: "Playlists data fetched successfully.",
+      })
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: "Error occured while fetching Playlists.",
+      })
+    }
+  };
+
+  const filteredPlaylists = playlists.filter((playlist:Playlist) =>
+    playlist.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="container mx-auto p-4">
+      <header className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Welcome to Playlist Viewer</h1>
+        <div>
+          {session ? (
+            <Button variant="outline" onClick={() => signOut()}>
+              Sign Out
+            </Button>
+          ) : (
+            <Button variant="default" onClick={() => signIn()}>
+              Sign In
+            </Button>
+          )}
         </div>
+      </header>
+
+      <main>
+        <div className="mb-6">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>Fetch Playlist</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogTitle>Fetch Playlists</DialogTitle>
+              <Input
+                placeholder="Channel ID"
+                value={channelId}
+                onChange={(e) => setChannelId(e.target.value)}
+                className="mb-2"
+              />
+              {!session && 
+              <Input
+                placeholder="API Key"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="mb-2"
+                required
+              />
+              }
+              <Button onClick={handleFetchPlaylist}>Submit</Button>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <Input
+          placeholder="Search playlists..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="mb-4"
+        />
+
+        {filteredPlaylists.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredPlaylists.map((playlist:Playlist) => (
+              <div key={playlist.id}>
+                <Card
+                  className="shadow-lg cursor-pointer"
+                  onClick={() =>
+                    setSelectedPlaylist(
+                      selectedPlaylist && selectedPlaylist.id === playlist.id
+                        ? null
+                        : playlist
+                    )
+                  }
+                >
+                  <CardHeader>
+                    <CardTitle>{playlist.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>{playlist.description || "No description available"}</p>
+                  </CardContent>
+                </Card>
+
+                {selectedPlaylist && selectedPlaylist.id === playlist.id && (
+                  <div className="mt-4">
+                    <h2 className="text-lg font-semibold mb-2">
+                      Videos in &quot;{selectedPlaylist.title}&quot;
+                    </h2>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {selectedPlaylist.videos.map((video: Video) => (
+                        <li key={video.id} className="mb-4">
+                          <iframe
+                            width="100%"
+                            height="200"
+                            src={`https://www.youtube.com/embed/${video.videoId}`}
+                            title={video.title}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                          <p className="mt-2">{video.title}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-600">
+            No playlists available. Fetch playlists to see them here.
+          </p>
+        )}
+
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }

@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# YouTube Playlist Fetcher
 
-## Getting Started
+A web application built with **Next.js** (TypeScript) that allows users to fetch and manage their YouTube playlists. The application uses **Prisma** with a **PostgreSQL** database hosted on **Supabase** for data storage and **NextAuth** for authentication.
 
-First, run the development server:
+## Features
+
+- Fetch and display YouTube playlists for authenticated users.
+- Public playlists are accessible to unauthenticated users.
+- Secure user authentication using **NextAuth** with Google or other OAuth providers.
+- Store playlists and their associated videos in a PostgreSQL database.
+
+## Tech Stack
+
+- **Frontend**: Next.js (React, TypeScript)
+- **Backend**: Next.js API routes
+- **Database**: PostgreSQL (hosted on Supabase)
+- **Authentication**: NextAuth.js
+- **ORM**: Prisma
+- **Deployment**: Vercel
+
+## Prerequisites
+
+- Node.js >= 16.x
+- PostgreSQL database (Supabase for cloud hosting)
+- Google Developer Console project for OAuth (or any other provider for NextAuth)
+
+## Setup Instructions
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/youtube-playlist-fetcher.git
+cd youtube-playlist-fetcher
+```
+
+### 2. Install Dependencies
+
+Install the necessary dependencies using npm or yarn:
+
+```bash
+npm install
+# or
+yarn install
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the root of the project and configure the following variables:
+
+```bash
+# Database URL (get this from Supabase)
+DATABASE_URL=postgresql://username:password@host:port/database_name?schema=public
+
+# NextAuth configuration
+NEXTAUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/callback/google
+
+# Secret used for NextAuth.js encryption
+NEXTAUTH_SECRET=your-nextauth-secret
+```
+
+- Replace `DATABASE_URL` with your PostgreSQL connection URL from **Supabase**.
+- Replace `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` with your OAuth credentials from the **Google Developer Console**.
+- Replace `NEXTAUTH_SECRET` with a secret for encrypting NextAuth.js tokens (can be generated online).
+
+### 4. Migrate the Database
+
+Run Prisma's migration commands to set up your database schema:
+
+```bash
+npx prisma migrate dev
+```
+
+This will generate the necessary database tables and schema.
+
+### 5. Run the Development Server
+
+Start the development server:
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Your app should now be running on [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## How it Works
 
-## Learn More
+### 1. Authentication with NextAuth
 
-To learn more about Next.js, take a look at the following resources:
+The app uses **NextAuth.js** to handle authentication. When a user signs in using Google (or another provider), their session is managed and stored in the database. The authentication flow is handled automatically.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. Fetching Playlists
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Authenticated users can fetch their YouTube playlists using the YouTube Data API. For unauthenticated users, only public playlists are displayed.
 
-## Deploy on Vercel
+### 3. Storing Playlists in PostgreSQL
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Prisma is used to interact with the PostgreSQL database on Supabase. The playlists and videos are stored in tables created via Prisma migrations. The data is retrieved and displayed dynamically on the frontend.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. Displaying Playlists
+
+The UI uses React components to display the playlists and their videos. Each playlist can be clicked to show more details.
+
+---
+
+## Contributing
+
+If you'd like to contribute to the project:
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Make your changes.
+4. Create a pull request.
+
+---
+
+This should be enough for getting started and understanding the structure of your project. Adjust as necessary for your specific needs!
